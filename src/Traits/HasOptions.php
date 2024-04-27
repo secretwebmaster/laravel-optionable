@@ -11,9 +11,6 @@ trait HasOptions
     public function __construct(array $attributes = array())
     {
         parent::__construct($attributes);
-        $this->laravel_optionable_configs = [
-            'aaa' => 'aaaaaa',
-        ];
     }
 
     public function options()
