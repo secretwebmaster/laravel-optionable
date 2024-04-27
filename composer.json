@@ -1,0 +1,60 @@
+{
+    "name": "secretwebmaster/laravel-optionable",
+    "description": "Allow any Eloquent model to have own options such as user options, page options, etc.",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Secretwebmaster\\LaravelOptionable\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Secretwebmaster\\LaravelOptionable\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/",
+            "Workbench\\Database\\Factories\\": "workbench/database/factories/",
+            "Workbench\\Database\\Seeders\\": "workbench/database/seeders/"
+        }
+    },
+    "authors": [
+        {
+            "name": "secretwebmaster",
+            "email": "earnbyshare2016@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "require": {
+        "php": "^8.1"
+    },
+    "require-dev": {
+        "orchestra/testbench": "8.x-dev"
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "@clear",
+            "@prepare"
+        ],
+        "clear": "@php vendor/bin/testbench package:purge-skeleton --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": "@php vendor/bin/testbench workbench:build --ansi",
+        "serve": [
+            "Composer\\Config::disableProcessTimeout",
+            "@build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "lint": [
+            "@php vendor/bin/phpstan analyse"
+        ],
+        "test": [
+            "@php vendor/bin/phpunit"
+        ]
+    },
+    "extra": {
+		"laravel": {
+			"providers": [
+				"Secretwebmaster\\LaravelOptionable\\Providers\\PackageServiceProvider"
+			]
+		}
+	}
+}
