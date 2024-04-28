@@ -8,28 +8,46 @@ Install the package through [Composer](http://getcomposer.org/).
 
 Run the Composer require command from the Terminal:
 
-```composer require secretwebmaster/laravel-optionable```
+```
+composer require secretwebmaster/laravel-optionable
+```
 
 Then run the migration to create our migration table
 
-```php artisan migrate```
+```
+php artisan migrate
+```
     
-If you're using Laravel 5.5 or above, that's all. 
+If you're using Laravel 5.5 or above, that's all.
 
+### Laravel <= 5.4
 If you still be on Laravel with version below 5.4 , there is one more step. Add the following service provider of the package to the package in `config/app.php` file.
 
 Add a new line to the `providers` array:
 
-```Secretwebmaster\LaravelOptionable\PackageServiceProvider::class```
+```
+Secretwebmaster\LaravelOptionable\PackageServiceProvider::class
+```
 
 Now you are ready to start using the laravel optionable!
 
+
+## Overview
+Look at one of the following topics to learn more
+* [Get all options](#get-all-options)
+* [Get single option value](#get-single-option-value)
+* [Set single option](#set-single-option)
+* [Set multiple options](#set-multiple-options)
+* [Delete single option](#delete-single-option)
+* [Delete multiple options](#delete-multiple-options)
+* [Delete all options](#delete-all-options)
 
 ## Usage
 First. Add the `HasOptions` trait to your model. Let's take User model as example
 
 ```
 use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
+
 class Post extends Model
 {
     use HasFactory;
