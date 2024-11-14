@@ -1,6 +1,15 @@
 {
     "name": "secretwebmaster/laravel-optionable",
     "description": "Allow any Eloquent model to have own options such as user options, page options, etc.",
+    "keywords": [
+        "laravel",
+        "eloquent",
+        "options",
+        "settings",
+        "preferences",
+        "wncms",
+        "secretwebmaster"
+    ],
     "type": "library",
     "license": "MIT",
     "autoload": {
