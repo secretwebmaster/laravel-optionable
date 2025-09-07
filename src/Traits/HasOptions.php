@@ -24,7 +24,9 @@ trait HasOptions
 
     public function getOption(string $key, mixed $fallback = null, bool $fallbackOnEmptyValue = true): mixed
     {
-        $option = $this->options->firstWhere('key', $key);
+        $options = $this->relationLoaded('options') ? $this->options : $this->options()->get();
+
+        $option = $options->firstWhere('key', $key);
 
         if ($option) {
             if ($option->value === null && $fallbackOnEmptyValue) {
