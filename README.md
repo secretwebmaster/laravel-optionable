@@ -1,39 +1,28 @@
-## Laravel Optionable
+# Laravel Optionable
 
-Allow any Eloquent model to have options such as user options, page options, etc.
+Allow any Eloquent model to have flexible **options** (like user settings, page options, metadata, etc.).  
+Options are stored in a dedicated table and can be retrieved, updated, or deleted easily.
 
 ## Installation
 
-Install the package through [Composer](http://getcomposer.org/). 
+Install via [Composer](http://getcomposer.org/):
 
-Run the Composer require command from the Terminal:
-
-```
+```bash
 composer require secretwebmaster/laravel-optionable
-```
+````
 
-Then run the migration to create our migration table
+Run the migration to create the `options` table:
 
-```
+```bash
 php artisan migrate
 ```
-    
-If you're using Laravel 5.5 or above, that's all.
 
-### Laravel <= 5.4
-If you still be on Laravel with version below 5.4 , there is one more step. Add the following service provider of the package to the package in `config/app.php` file.
+That’s all you need 🎉
 
-Add a new line to the `providers` array:
-
-```
-Secretwebmaster\LaravelOptionable\PackageServiceProvider::class
-```
-
-Now you are ready to start using the laravel optionable!
-
+---
 
 ## Overview
-Look at one of the following topics to learn more
+
 * [Get all options](#get-all-options)
 * [Get single option value](#get-single-option-value)
 * [Set single option](#set-single-option)
@@ -42,89 +31,149 @@ Look at one of the following topics to learn more
 * [Delete multiple options](#delete-multiple-options)
 * [Delete all options](#delete-all-options)
 
-## Usage
-First. Add the `HasOptions` trait to your model. Let's take User model as example
+---
 
-```
+## Usage
+
+Add the `HasOptions` trait to any Eloquent model.
+Example: `Post` model
+
+```php
+use Illuminate\Database\Eloquent\Model;
 use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 
 class Post extends Model
 {
-    use HasFactory;
-    use HasOptions; // <-- add this
-
-    protected $guarded = [];
+    use HasOptions;  // <-- add this
 
     //...
 }
 ```
 
+Now you can manage options directly on the model instance:
 
-Now you can access all relationship methods. In your real project. You can use on any Eloquent model.
+```php
+$post = Post::first();
+```
 
-First. Get your model
-```
-$model = Model::first();
-```
+---
 
 ### Get all options
 
-```
-$model->get_options();
+```php
+$post->getOptions(); // default: array
+$post->getOptions('json'); // return JSON
+$post->getOptions('collection'); // return Collection
 ```
 
-You can specify the output format. By default, it will be in array. You can pass `json` or `collection` to change the output format
-```
-$model->get_options('json');
-$model->get_options('collection');
-```
+---
 
 ### Get single option value
 
-Pass key name to get the value
-```
-$model->get_option('key');
-```
-
-You can also pass a fallback value if key is not found or value is empty.
-
-```
-$model->get_option('key', 'fallback value');
+```php
+$post->getOption('key');
 ```
 
-If you don't want to fallback when key is set but value is empty. You can pass `false` as the third parameter to force return the actual value.
+With fallback:
+
+```php
+$post->getOption('key', 'default');
 ```
-$model->get_option('key', 'fallback value', false);
+
+If you want to allow `null`/empty values (instead of fallback):
+
+```php
+$post->getOption('key', 'default', false);
 ```
+
+---
 
 ### Set single option
-```
-$model->set_option('key', 'value');
+
+```php
+$post->setOption('key', 'value');
+$post->setOption('theme', ['color' => 'blue']); // arrays/objects supported (stored as JSON)
 ```
 
+---
+
 ### Set multiple options
-Pass the data in form of array. Nested array is not supported
-```
-$model->set_options([
+
+```php
+$post->setOptions([
     'language' => 'English',
     'mode' => 'dark',
-    'homepage' => 'something',
+    'homepage' => 'welcome',
 ]);
 ```
 
+---
+
 ### Delete single option
-Pass the key you want to delete
+
+```php
+$post->deleteOption('key');
 ```
-$model->delete_option('key');
-```
+
+---
 
 ### Delete multiple options
-Pass the keys in form of array
-```
-$model->delete_options(['key1', 'key2']);
+
+```php
+$post->deleteOptions(['key1', 'key2']);
 ```
 
+---
+
 ### Delete all options
+
+```php
+$post->deleteAllOptions();
 ```
-$model->delete_all_options();
+
+Or keep some keys:
+
+```php
+$post->deleteAllOptions(['language']); // deletes everything except 'language'
+```
+
+---
+
+## Legacy Support
+
+For backward compatibility, all methods are also available in **snake\_case**:
+
+```php
+$post->get_option('key');
+$post->set_option('key', 'value');
+$post->delete_all_options();
+```
+
+Both camelCase and snake\_case will work ✅
+
+---
+
+## Table Schema
+
+The migration creates an `options` table with:
+
+* `id`
+* `key` (string)
+* `value` (json, nullable)
+* `optionable_type` (string)
+* `optionable_id` (unsignedBigInteger)
+* `timestamps`
+
+Constraints & Indexes:
+
+* Unique per model: `optionable_type + optionable_id + key`
+* Indexed `key` column
+* Indexed polymorphic relation via `morphs()`
+
+---
+
+## License
+
+MIT © [secretwebmaster](https://github.com/secretwebmaster)
+
 ```

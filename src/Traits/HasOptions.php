@@ -2,18 +2,19 @@
 
 namespace Secretwebmaster\LaravelOptionable\Traits;
 
+use Illuminate\Support\Str;
 use Secretwebmaster\LaravelOptionable\Models\Option;
 
 trait HasOptions
 {
-    public $laravel_optionable_configs;
+    public $laravelOptionableConfigs;
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
 
-        //plan to add a file: config/laravel-optionable.php
-        $this->laravel_optionable_configs = [];
+        // plan to add a file: config/laravel-optionable.php
+        $this->laravelOptionableConfigs = [];
     }
 
     public function options()
@@ -21,33 +22,31 @@ trait HasOptions
         return $this->morphMany(Option::class, 'optionable');
     }
 
-    public function get_option(string $key, string|int|bool|null $fallback = null, bool|null $fallback_on_empty_value = true)
+    public function getOption(string $key, mixed $fallback = null, bool $fallbackOnEmptyValue = true): mixed
     {
-        $option = $this->options()->where('key', $key)->first();
+        $option = $this->options->firstWhere('key', $key);
 
         if ($option) {
-            if (empty($option->value) && $fallback_on_empty_value) {
+            if ($option->value === null && $fallbackOnEmptyValue) {
                 return $fallback;
-            } else {
-                return $option->value;
             }
+            return $option->value;
         }
 
         return $fallback;
     }
 
-    public function get_options(string $format = 'array')
+    public function getOptions(string $format = 'array'): mixed
     {
-        if ($format == 'collection') {
+        if ($format === 'collection') {
             return $this->options;
-        } elseif ($format == 'json') {
+        } elseif ($format === 'json') {
             return $this->options->pluck('value', 'key')->toJson();
-        } else {
-            return $this->options->pluck('value', 'key')->toArray();
         }
+        return $this->options->pluck('value', 'key')->toArray();
     }
 
-    public function set_option(string $key, string|int|bool|null $value)
+    public function setOption(string $key, mixed $value)
     {
         return $this->options()->updateOrCreate(
             ['key' => $key],
@@ -55,7 +54,7 @@ trait HasOptions
         );
     }
 
-    public function set_options(array $options)
+    public function setOptions(array $options): int
     {
         $count = 0;
         foreach ($options as $key => $value) {
@@ -71,18 +70,32 @@ trait HasOptions
         return $count;
     }
 
-    public function delete_option(string $key)
+    public function deleteOption(string $key): int
     {
         return $this->options()->where('key', $key)->delete();
     }
 
-    public function delete_options(array $keys)
+    public function deleteOptions(array $keys): int
     {
         return $this->options()->whereIn('key', $keys)->delete();
     }
 
-    public function delete_all_options(array $except = [])
+    public function deleteAllOptions(array $except = []): int
     {
-        return $this->options()->whereNotIn('key', $except)->delete();
+        return $this->options()->when(!empty($except), fn($q) => $q->whereNotIn('key', $except))->delete();
+    }
+
+    /**
+     * Legacy support: map snake_case calls (get_option) to camelCase (getOption).
+     */
+    public function __call($method, $parameters)
+    {
+        $snakeMethod = Str::snake($method);
+
+        if (method_exists($this, $snakeMethod)) {
+            return $this->{$snakeMethod}(...$parameters);
+        }
+
+        return parent::__call($method, $parameters);
     }
 }

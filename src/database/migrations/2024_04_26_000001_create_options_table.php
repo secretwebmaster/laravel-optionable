@@ -8,16 +8,15 @@ class CreateOptionsTable extends Migration
 {
     public function up(): void
     {
-        Schema::create('options', function(Blueprint $table){
+        Schema::create('options', function (Blueprint $table) {
             $table->id();
             $table->string('key');
-            $table->string('value')->nullable();
-            $table->unsignedBigInteger('optionable_id');
-            $table->string('optionable_type');
+            $table->json('value')->nullable();
+            $table->morphs('optionable');
             $table->timestamps();
 
-            // $table->index('key');
-            // $table->index('value');
+            $table->unique(['optionable_type', 'optionable_id', 'key']);
+            $table->index('key');
         });
     }
 
