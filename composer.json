@@ -31,13 +31,16 @@
             "email": "earnbyshare2016@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "prefer-stable": true,
     "require": {
-        "php": "^8.1"
+        "php": "^8.2",
+        "illuminate/database": "^9.0|^10.0|^11.0|^12.0",
+        "illuminate/support": "^9.0|^10.0|^11.0|^12.0"
     },
     "require-dev": {
-        "orchestra/testbench": "8.x-dev"
+        "orchestra/testbench": "^10.0",
+        "phpunit/phpunit": "^11.5"
     },
     "scripts": {
         "post-autoload-dump": [
@@ -60,10 +63,10 @@
         ]
     },
     "extra": {
-		"laravel": {
-			"providers": [
-				"Secretwebmaster\\LaravelOptionable\\Providers\\PackageServiceProvider"
-			]
-		}
-	}
+        "laravel": {
+            "providers": [
+                "Secretwebmaster\\LaravelOptionable\\Providers\\PackageServiceProvider"
+            ]
+        }
+    }
 }
