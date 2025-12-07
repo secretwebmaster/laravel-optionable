@@ -3,6 +3,7 @@
 namespace Secretwebmaster\LaravelOptionable\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Wncms\Translatable\Traits\HasTranslations;
 
 /**
  * @property string $key
@@ -10,11 +11,17 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Option extends Model
 {
+    use HasTranslations;
+
     protected $guarded = [];
 
-    protected $casts = [
-        'value' => 'array',
-    ];
+    public static $modelKey = 'option';
+
+    protected $translatable = ['value'];
+
+    // protected $casts = [
+    //     'value' => 'array',
+    // ];
 
     public function optionable()
     {

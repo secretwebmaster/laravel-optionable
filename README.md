@@ -1,179 +1,177 @@
-# Laravel Optionable
+# Laravel Optionable v2.0.0
 
-Allow any Eloquent model to have flexible **options** (like user settings, page options, metadata, etc.).  
-Options are stored in a dedicated table and can be retrieved, updated, or deleted easily.
+Laravel Optionable adds flexible, structured option storage to any Eloquent model.
+Options are stored in a dedicated table with support for:
+
+* **scope** (e.g. `theme`, `template`, `seo`)
+* **group** (e.g. section or nested context)
+* **repeatable items** with `sort`
+* **nested JSON option values**
+* **fallbacks**
+* **translation support (via HasTranslations)**
+
+This package powers advanced option systems such as **WNCMS theme options**, **page template options**, and **model metadata**.
+
+---
 
 ## Installation
 
-Install via [Composer](http://getcomposer.org/):
-
 ```bash
 composer require secretwebmaster/laravel-optionable
-````
-
-Run the migration to create the `options` table:
-
-```bash
 php artisan migrate
 ```
 
-That’s all you need 🎉
-
 ---
 
-## Overview
+# Usage
 
-* [Get all options](#get-all-options)
-* [Get single option value](#get-single-option-value)
-* [Set single option](#set-single-option)
-* [Set multiple options](#set-multiple-options)
-* [Delete single option](#delete-single-option)
-* [Delete multiple options](#delete-multiple-options)
-* [Delete all options](#delete-all-options)
-
----
-
-## Usage
-
-Add the `HasOptions` trait to any Eloquent model.
-Example: `Post` model
+Add `HasOptions` to any Eloquent model:
 
 ```php
 use Illuminate\Database\Eloquent\Model;
 use Secretwebmaster\LaravelOptionable\Traits\HasOptions;
 
-class Post extends Model
+class Page extends Model
 {
-    use HasOptions;  // <-- add this
-
-    //...
+    use HasOptions;
 }
 ```
 
-Now you can manage options directly on the model instance:
+You may now store unlimited structured options on this model.
+
+---
+
+# Getting Options
+
+## Get all rows (optional scope/group)
 
 ```php
-$post = Post::first();
+$rows = $page->getOptions();
+$rows = $page->getOptions('theme');
+$rows = $page->getOptions('theme', 'header');
+```
+
+Returns a sorted `Collection` of Option rows.
+
+---
+
+## Get a single option value
+
+```php
+$value = $page->getOption('title', 'theme');
+```
+
+Or with group:
+
+```php
+$value = $page->getOption('button_text', 'theme', 'hero');
+```
+
+Fallback support:
+
+```php
+$value = $page->getOption('color', 'theme', 'footer', 'default-color');
+```
+
+Allow null values:
+
+```php
+$page->getOption('logo', 'theme', null, null, false);
 ```
 
 ---
 
-### Get all options
+# Setting Options
+
+## Set a single option
 
 ```php
-$post->getOptions(); // default: array
-$post->getOptions('json'); // return JSON
-$post->getOptions('collection'); // return Collection
+$page->setOption('title', 'Hello World', 'theme');
+```
+
+With group and sort:
+
+```php
+$page->setOption('image', '/a.jpg', 'theme', 'gallery', 0);
+$page->setOption('image', '/b.jpg', 'theme', 'gallery', 1);
 ```
 
 ---
 
-### Get single option value
+## Set multiple options for a scope/group
 
 ```php
-$post->getOption('key');
-```
-
-With fallback:
-
-```php
-$post->getOption('key', 'default');
-```
-
-If you want to allow `null`/empty values (instead of fallback):
-
-```php
-$post->getOption('key', 'default', false);
-```
-
----
-
-### Set single option
-
-```php
-$post->setOption('key', 'value');
-$post->setOption('theme', ['color' => 'blue']); // arrays/objects supported (stored as JSON)
-```
-
----
-
-### Set multiple options
-
-```php
-$post->setOptions([
-    'language' => 'English',
-    'mode' => 'dark',
-    'homepage' => 'welcome',
+$page->setOptions('theme', 'hero', [
+    ['key' => 'title', 'value' => 'Welcome'],
+    ['key' => 'subtitle', 'value' => 'Enjoy'],
+    ['key' => 'button_text', 'value' => 'Click'],
 ]);
 ```
 
+This clears existing options under that scope/group first.
+
 ---
 
-### Delete single option
+# Deleting Options
+
+## Delete a single option
 
 ```php
-$post->deleteOption('key');
+$page->deleteOption('title', 'theme');
 ```
 
----
-
-### Delete multiple options
+With group and sort:
 
 ```php
-$post->deleteOptions(['key1', 'key2']);
+$page->deleteOption('image', 'theme', 'gallery', 1);
 ```
 
 ---
 
-### Delete all options
+## Clear all options under a scope/group
 
 ```php
-$post->deleteAllOptions();
-```
-
-Or keep some keys:
-
-```php
-$post->deleteAllOptions(['language']); // deletes everything except 'language'
+$page->clearOptions('theme', 'hero');
 ```
 
 ---
 
-## Legacy Support
+# Table Schema (v2)
 
-For backward compatibility, all methods are also available in **snake\_case**:
+The migration creates:
 
-```php
-$post->get_option('key');
-$post->set_option('key', 'value');
-$post->delete_all_options();
-```
+| Column          | Type             | Description                                |
+| --------------- | ---------------- | ------------------------------------------ |
+| id              | bigint           | primary key                                |
+| scope           | string nullable  | Option namespace (e.g. theme/template/seo) |
+| group           | string nullable  | Optional subgroup                          |
+| key             | string           | Option key                                 |
+| sort            | integer nullable | Repeatable index                           |
+| value           | text/json        | Value (translated or raw)                  |
+| is_translatable | boolean          | Whether value uses HasTranslations         |
+| optionable_type | string           | Morph type                                 |
+| optionable_id   | bigint           | Morph id                                   |
+| timestamps      | —                | —                                          |
 
-Both camelCase and snake\_case will work ✅
+Indexes:
 
----
+* `scope + group + key + sort + optionable_type + optionable_id`
+* polymorphic indexes
 
-## Table Schema
+## Legacy Support (v1)
 
-The migration creates an `options` table with:
+Snake_case method names continue to work for all methods that still exist
+in v2, thanks to the __call() snake_case fallback.
 
-* `id`
-* `key` (string)
-* `value` (json, nullable)
-* `optionable_type` (string)
-* `optionable_id` (unsignedBigInteger)
-* `timestamps`
+Supported snake_case aliases:
+- get_option()
+- set_option()
+- get_options()
+- set_options()
+- delete_option()
+- clear_options()
 
-Constraints & Indexes:
-
-* Unique per model: `optionable_type + optionable_id + key`
-* Indexed `key` column
-* Indexed polymorphic relation via `morphs()`
-
----
-
-## License
-
-MIT © [secretwebmaster](https://github.com/secretwebmaster)
-
-```
+The following v1 methods have been removed and no longer exist:
+- deleteOptions()
+- deleteAllOptions()
+Therefore their snake_case forms (delete_options(), delete_all_options()) are not available.
