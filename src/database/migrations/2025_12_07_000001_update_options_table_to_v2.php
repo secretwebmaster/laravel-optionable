@@ -95,14 +95,19 @@ return new class extends Migration
         });
     }
 
-    private function dropIndexIfExists(string $tableName, string $indexName): void
+    private function dropIndexIfExists(string $tableName, string $indexSuffix): void
     {
-        try {
-            Schema::table($tableName, function (Blueprint $table) use ($indexName) {
-                $table->dropIndex($indexName);
-            });
-        } catch (\Throwable $e) {
-            // ignore if missing
+        $prefix = DB::getTablePrefix();
+        $fullTable = $prefix . $tableName;
+
+        // Get indexes from MySQL
+        $indexes = DB::select("SHOW INDEX FROM `$fullTable`");
+
+        foreach ($indexes as $idx) {
+            // Match by suffix → safe for auto-generated names
+            if (str_contains($idx->Key_name, $indexSuffix)) {
+                DB::statement("ALTER TABLE `$fullTable` DROP INDEX `{$idx->Key_name}`");
+            }
         }
     }
 };
