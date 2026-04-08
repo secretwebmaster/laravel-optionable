@@ -49,7 +49,7 @@ trait HasOptions
             $directRow = $rows->where('key', $key)->whereNull('sort')->first();
 
             if ($directRow) {
-                $value = $directRow->value;
+                $value = $this->normalizeOptionValue($directRow->value);
 
                 // apply fallback logic for null or empty string
                 if ($fallbackOnEmptyValue && ($value === null || $value === '')) {
@@ -68,7 +68,7 @@ trait HasOptions
                     return $fallback;
                 }
 
-                $value = $row->value;
+                $value = $this->normalizeOptionValue($row->value);
 
                 // apply fallback logic for null or empty string
                 if ($fallbackOnEmptyValue && ($value === null || $value === '')) {
@@ -84,7 +84,7 @@ trait HasOptions
                 return $fallback;
             }
 
-            $value = $row->value;
+            $value = $this->normalizeOptionValue($row->value);
             $nested = data_get($value, $sub);
 
             // apply fallback logic for null or empty string
@@ -99,7 +99,7 @@ trait HasOptions
         $row = $rows->where('key', $key)->whereNull('sort')->first();
 
         if ($row) {
-            $value = $row->value;
+            $value = $this->normalizeOptionValue($row->value);
 
             // apply fallback logic for null or empty string
             if ($fallbackOnEmptyValue && ($value === null || $value === '')) {
@@ -156,7 +156,7 @@ trait HasOptions
                 'sort'  => $sort,
             ],
             [
-                'value' => $value,
+                'value' => $this->prepareOptionValue($value),
             ]
         );
     }
@@ -277,6 +277,36 @@ trait HasOptions
         return $rows;
     }
 
+    protected function prepareOptionValue(mixed $value): mixed
+    {
+        if (is_array($value) || is_object($value)) {
+            return json_encode($value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+
+        return $value;
+    }
+
+    protected function normalizeOptionValue(mixed $value): mixed
+    {
+        if (!is_string($value)) {
+            return $value;
+        }
+
+        $trimmedValue = trim($value);
+
+        if ($trimmedValue === '') {
+            return $value;
+        }
+
+        if (!Str::startsWith($trimmedValue, ['{', '['])) {
+            return $value;
+        }
+
+        $decodedValue = json_decode($trimmedValue, true);
+
+        return json_last_error() === JSON_ERROR_NONE ? $decodedValue : $value;
+    }
+
     /**
      * Legacy support for snake_case method names.
      *
@@ -286,12 +316,10 @@ trait HasOptions
      */
     public function __call($method, $parameters)
     {
-        // convert to snake case
-        $snakeMethod = Str::snake($method);
+        $camelMethod = Str::camel($method);
 
-        // call snake version if exists
-        if (method_exists($this, $snakeMethod)) {
-            return $this->{$snakeMethod}(...$parameters);
+        if ($camelMethod !== $method && method_exists($this, $camelMethod)) {
+            return $this->{$camelMethod}(...$parameters);
         }
 
         return parent::__call($method, $parameters);

@@ -3,6 +3,7 @@
 namespace Secretwebmaster\LaravelOptionable\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Wncms\Translatable\Traits\HasTranslations;
 
 /**
@@ -23,7 +24,7 @@ class Option extends Model
     //     'value' => 'array',
     // ];
 
-    public function optionable()
+    public function optionable(): MorphTo
     {
         return $this->morphTo();
     }

@@ -3,69 +3,47 @@
 namespace Secretwebmaster\LaravelOptionable\Tests;
 
 use Illuminate\Contracts\Config\Repository;
-use Orchestra\Testbench\TestCase as TestbenchTestCase;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+use Orchestra\Testbench\TestCase as OrchestraTestCase;
 use Secretwebmaster\LaravelOptionable\Providers\PackageServiceProvider;
+use Wncms\Translatable\TranslatableServiceProvider;
 
-class TestCase extends TestbenchTestCase
+class TestCase extends OrchestraTestCase
 {
-    /**
-     * Automatically enables package discoveries.
-     *
-     * @var bool
-     */
-    // protected $enablesPackageDiscoveries = true;
-
-    /**
-     * Setup the test environment.
-     */
-    protected function setUp(): void
-    {
-        // Code before application created.
-
-        $this->afterApplicationCreated(function () {
-            // Code after application created.
-        });
-
-        $this->beforeApplicationDestroyed(function () {
-            // Code before application destroyed.
-        });
-
-        parent::setUp();
-    }
-
-    /**
-     * Define environment setup.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return void
-     */
-    protected function getEnvironmentSetup($app)
-    {
-        $app['config']->set('database.default', 'test_db');
-        $app['config']->set('database.connections.test_db', [
-            'driver'   => 'sqlite',
-            'database' => ':memory:',
-            'prefix'   => '',
-        ]);
-
-        // Setup queue database connections.
-        $app['config']->set([
-            'queue.batching.database' => 'test_db',
-            'queue.failed.database' => 'test_db',
-        ]);
-    }
-
-
-    /**
-     * Get package providers.
-     *
-     * @param  \Illuminate\Foundation\Application  $app
-     * @return array<int, class-string<\Illuminate\Support\ServiceProvider>>
-     */
-    protected function getPackageProviders($app)
+    protected function getPackageProviders($app): array
     {
         return [
             PackageServiceProvider::class,
+            TranslatableServiceProvider::class,
         ];
+    }
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->artisan('migrate', ['--database' => 'testbench'])->run();
+
+        Schema::create('test_pages', function (Blueprint $table) {
+            $table->id();
+            $table->string('title')->nullable();
+            $table->timestamps();
+        });
+    }
+
+    protected function defineEnvironment($app): void
+    {
+        tap($app['config'], function (Repository $config) {
+            $config->set('database.default', 'testbench');
+            $config->set('database.connections.testbench', [
+                'driver' => 'sqlite',
+                'database' => ':memory:',
+                'prefix' => '',
+            ]);
+
+            $config->set('queue.batching.database', 'testbench');
+            $config->set('queue.failed.database', 'testbench');
+        });
     }
 }

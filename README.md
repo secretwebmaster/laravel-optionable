@@ -1,4 +1,4 @@
-# Laravel Optionable v2.0.0
+# Laravel Optionable v2.1
 
 Laravel Optionable adds flexible, structured option storage to any Eloquent model.
 Options are stored in a dedicated table with support for:
@@ -12,6 +12,12 @@ Options are stored in a dedicated table with support for:
 
 This package powers advanced option systems such as **WNCMS theme options**, **page template options**, and **model metadata**.
 
+`v2.1` is the Laravel 13 support line and targets:
+
+* PHP 8.4+
+* Laravel / Illuminate 13.x
+* Orchestra Testbench 11.x for package testing
+
 ---
 
 ## Installation
@@ -20,6 +26,8 @@ This package powers advanced option systems such as **WNCMS theme options**, **p
 composer require secretwebmaster/laravel-optionable
 php artisan migrate
 ```
+
+The package depends on `secretwebmaster/wncms-translatable` because option values use its translation trait internally.
 
 ---
 
