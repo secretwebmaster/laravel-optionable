@@ -42,7 +42,7 @@
         "php": "^8.4",
         "illuminate/database": "^13.0",
         "illuminate/support": "^13.0",
-        "secretwebmaster/wncms-translatable": "^1.3.2 || dev-main as 1.4.0"
+        "secretwebmaster/wncms-translatable": "^1.4.1"
     },
     "require-dev": {
         "orchestra/testbench": "^11.0",
@@ -75,7 +75,7 @@
             ]
         },
         "branch-alias": {
-            "dev-main": "2.1.x-dev"
+            "dev-main": "2.1.1.x-dev"
         }
     }
 }
